@@ -130,5 +130,143 @@ typedef struct _IMAGE_FILE_HEADER {
                     SizeOfStackCommit
                     SizeOfHeapReserve
                     SizeOfHeapCommit
+- cấu trúc của 2 struct trên
 
+```C
+typedef struct _IMAGE_OPTIONAL_HEADER {
+    //
+    // Standard fields.
+    //
+
+    WORD    Magic;
+    BYTE    MajorLinkerVersion;
+    BYTE    MinorLinkerVersion;
+    DWORD   SizeOfCode;
+    DWORD   SizeOfInitializedData;
+    DWORD   SizeOfUninitializedData;
+    DWORD   AddressOfEntryPoint;
+    DWORD   BaseOfCode;
+    DWORD   BaseOfData;
+
+    //
+    // NT additional fields.
+    //
+
+    DWORD   ImageBase;
+    DWORD   SectionAlignment;
+    DWORD   FileAlignment;
+    WORD    MajorOperatingSystemVersion;
+    WORD    MinorOperatingSystemVersion;
+    WORD    MajorImageVersion;
+    WORD    MinorImageVersion;
+    WORD    MajorSubsystemVersion;
+    WORD    MinorSubsystemVersion;
+    DWORD   Win32VersionValue;
+    DWORD   SizeOfImage;
+    DWORD   SizeOfHeaders;
+    DWORD   CheckSum;
+    WORD    Subsystem;
+    WORD    DllCharacteristics;
+    DWORD   SizeOfStackReserve;
+    DWORD   SizeOfStackCommit;
+    DWORD   SizeOfHeapReserve;
+    DWORD   SizeOfHeapCommit;
+    DWORD   LoaderFlags;
+    DWORD   NumberOfRvaAndSizes;
+    IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
+} IMAGE_OPTIONAL_HEADER32, *PIMAGE_OPTIONAL_HEADER32;
+```
+
+```C
+typedef struct _IMAGE_OPTIONAL_HEADER64 {
+    WORD        Magic;
+    BYTE        MajorLinkerVersion;
+    BYTE        MinorLinkerVersion;
+    DWORD       SizeOfCode;
+    DWORD       SizeOfInitializedData;
+    DWORD       SizeOfUninitializedData;
+    DWORD       AddressOfEntryPoint;
+    DWORD       BaseOfCode;
+    ULONGLONG   ImageBase;
+    DWORD       SectionAlignment;
+    DWORD       FileAlignment;
+    WORD        MajorOperatingSystemVersion;
+    WORD        MinorOperatingSystemVersion;
+    WORD        MajorImageVersion;
+    WORD        MinorImageVersion;
+    WORD        MajorSubsystemVersion;
+    WORD        MinorSubsystemVersion;
+    DWORD       Win32VersionValue;
+    DWORD       SizeOfImage;
+    DWORD       SizeOfHeaders;
+    DWORD       CheckSum;
+    WORD        Subsystem;
+    WORD        DllCharacteristics;
+    ULONGLONG   SizeOfStackReserve;
+    ULONGLONG   SizeOfStackCommit;
+    ULONGLONG   SizeOfHeapReserve;
+    ULONGLONG   SizeOfHeapCommit;
+    DWORD       LoaderFlags;
+    DWORD       NumberOfRvaAndSizes;
+    IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
+} IMAGE_OPTIONAL_HEADER64, *PIMAGE_OPTIONAL_HEADER64;
+```
+
+<h4>Data Directories</h4>  
+
+- thành phần cuối cùng trong struct "IMAGE_OPTIONAL_HEADE" là một mảng struct "IMAGE_DATA_DIRECTORY" được định nghĩa như sau 
+
+```C
+IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
+```
+
+- "IMAGE_NUMBEROF_DIRECTORY_ENTRIES" là hằng số có giá trị = 16, có nghĩa là mảng này có thể chứa được 16 mục "IMAGE_DATA_DIRECTORY":
+
+```C
+#define IMAGE_NUMBEROF_DIRECTORY_ENTRIES    16
+```
+
+- một struct "IMAGE_DATA_DIRECTORY" gốm các thành phần sau: 
+
+```C
+typedef struct _IMAGE_DATA_DIRECTORY {
+    DWORD   VirtualAddress;
+    DWORD   Size;
+} IMAGE_DATA_DIRECTORY, *PIMAGE_DATA_DIRECTORY;
+```
+đây là 1 struct khá đơn giản, đầu tiên là RVA chỉ đến điểm bắt đầu của Data Directory, sau đó là size của Data Directory
+
+- Vậy, Data Directory là 1 phần dữ liệu nằm trong 1 trong các sections của PE files
+- Data Directory chứa các thông tin quan trọng mà trong quá trình loader cần đến, ví dụ 1 directory quan trọng như Import Directory sẽ chứa 1 list các functions bên ngoài được import từ các thư viện khác
+
+- lưu ý không phải mọi Data Directory đều có cùng 1 cấu trúc là "IMAGE_DATA_DIRECTORY.VirtualAddress" chỉ tới vị trí của Data Directory, nhưng kiểu dữ liệu của thư mục đó sẽ quyết định cách giải mã giữ liệu nằm trong vị trí đó 
+
+- danh sách các Data Directory nằm trong 'winnt.h' (Mỗi giá trị bên dưới là chỉ số tương ứng trong mảng DataDirectory):
+
+```C
+#define IMAGE_DIRECTORY_ENTRY_EXPORT          0   // Export Directory
+#define IMAGE_DIRECTORY_ENTRY_IMPORT          1   // Import Directory
+#define IMAGE_DIRECTORY_ENTRY_RESOURCE        2   // Resource Directory
+#define IMAGE_DIRECTORY_ENTRY_EXCEPTION       3   // Exception Directory
+#define IMAGE_DIRECTORY_ENTRY_SECURITY        4   // Security Directory
+#define IMAGE_DIRECTORY_ENTRY_BASERELOC       5   // Base Relocation Table
+#define IMAGE_DIRECTORY_ENTRY_DEBUG           6   // Debug Directory
+//      IMAGE_DIRECTORY_ENTRY_COPYRIGHT       7   // (Chỉ dùng trên X86)
+#define IMAGE_DIRECTORY_ENTRY_ARCHITECTURE    7   // Dữ liệu riêng của kiến trúc
+#define IMAGE_DIRECTORY_ENTRY_GLOBALPTR       8   // RVA của GP (Global Pointer)
+#define IMAGE_DIRECTORY_ENTRY_TLS             9   // TLS Directory
+#define IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG    10   // Load Configuration Directory
+#define IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT   11   // Bound Import Directory trong headers
+#define IMAGE_DIRECTORY_ENTRY_IAT            12   // Import Address Table
+#define IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT   13   // Delay Load Import Descriptors
+#define IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR 14   // COM Runtime descriptor
+```
+
+- nếu mở nội dung của "IMAGE_OPTIONAL_HEADER.DataDirectory" của 1 file PE thực tế, có thể thấy giá trị của cả 2 thành phần của nó đều = 0 thì có nghĩa Data Directory đó không được sử dụng trong file thực thi đó
+
+
+
+
+
+1.5 Section và Section Header
       
