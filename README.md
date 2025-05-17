@@ -114,18 +114,21 @@ typedef struct _IMAGE_FILE_HEADER {
 
 
 
-1.4.2 OPtional Header
-    - Optional Header là phần quan trọng nhất trong ntheader, bởi Pe loader sẽ tìm kiếm thông tin cụ thể từ header này để có thể chạy và thực thi chương trình
-    - nó được gọi là optinal header vì 1 số file như object files không có có header này, nhưng optinal header là cần thiết cho 1 file ảnh (image file)
-    - nó không có size cố định, đó là lý do tại sao có struct "IMAGE_FILE_HEADER.SizeOfOptionalHeader" dùng để xác định kích thước của optinal header 
-    - 8 thành phần đầu trong struct của optinal header là chuẩn, đặc trưng với mọi trình thực thi của định dạng file COFF, phần còn lại là phần mở rộng được xác định với microsoft, những thành phần mở rộngrộng này là cần thiết cho Windows PE loader và linker 
-    - có 2 phiên bản của optinal header là file thực thi 32 bit và 64 bit, 2 phiên bản này khác nhau ở chỗ:
-            + kích thước (hoặc số lượng thành phần của chúng) "IMAGE_OPTIONAL_HEADER32" có 31 thành phần còn "IMAGE_OPTIONAL_HEADER64" chỉ có 30. "IMAGE_OPTIONAL_HEADER32"
-            có thêm một thành phần khác có kiểu "DWORD" tên là "BaseOfData" chứ RVA (Relative Virtual Address) (địa chỉ ảo tương đối) của điểm bắt dầu của data section
-            + kiểu dữ liệu của 1 số thành phần: 
+1.4.2 Optional Header
+
+- Optional Header là phần quan trọng nhất trong ntheader, bởi Pe loader sẽ tìm kiếm thông tin cụ thể từ header này để có thể chạy và thực thi chương trình.
+- nó được gọi là optinal header vì 1 số file như object files không có có header này, nhưng optinal header là cần thiết cho 1 file ảnh (image file).
+- nó không có size cố định, đó là lý do tại sao có struct "IMAGE_FILE_HEADER.SizeOfOptionalHeader" dùng để xác định kích thước của optinal header .
+- 8 thành phần đầu trong struct của optinal header là chuẩn, đặc trưng với mọi trình thực thi của định dạng file COFF, phần còn lại là phần mở rộng được xác định với microsoft, những thành phần mở rộngrộng này là cần thiết cho Windows PE loader và linker.
+- có 2 phiên bản của optinal header là file thực thi 32 bit và 64 bit, 2 phiên bản này khác nhau ở chỗ:
+    - kích thước (hoặc số lượng thành phần của chúng) "IMAGE_OPTIONAL_HEADER32" có 31 thành phần còn "IMAGE_OPTIONAL_HEADER64" chỉ có 30. "IMAGE_OPTIONAL_HEADER32" có thêm một thành phần khác có kiểu "DWORD" tên là "BaseOfData" chứ RVA (Relative Virtual Address) (địa chỉ ảo tương đối) của điểm bắt dầu của data section.
+    - kiểu dữ liệu của 1 số thành phần: 
                 5 thành phần sau trong cấu trúc của optinal header là kiểu "DWORD" trong 32bit nhưng là "ULONGLONG" trogn 64bit:
+      
                     ImageBase
                     SizeOfStackReserve
                     SizeOfStackCommit
                     SizeOfHeapReserve
                     SizeOfHeapCommit
+
+      
